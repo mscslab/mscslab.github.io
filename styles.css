@@ -175,11 +175,11 @@ button {
 
 .progress__bar {
   position: absolute;
-  inset: 0 auto 0 0;
+  inset: 0 0 0 auto;
   width: 25%;
   border-radius: inherit;
   background: linear-gradient(90deg, #ff9dbd, var(--pink));
-  box-shadow: 4px 0 10px rgba(245, 95, 145, 0.18);
+  box-shadow: -4px 0 10px rgba(245, 95, 145, 0.18);
   transition: width 0.55s var(--ease-pop);
 }
 
@@ -873,6 +873,59 @@ h2 {
   margin-bottom: 16px;
 }
 
+.love-message {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  margin: 0 2px 14px;
+  padding: 16px 14px;
+  overflow: hidden;
+  border: 1px solid rgba(245, 95, 145, 0.22);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 8% 15%, rgba(222, 204, 255, 0.55), transparent 32%),
+    linear-gradient(135deg, #fff2f7, #ffe5ef);
+  box-shadow: 0 12px 24px -16px rgba(223, 70, 125, 0.48);
+}
+
+.love-message::after {
+  position: absolute;
+  left: -4px;
+  bottom: -19px;
+  color: rgba(245, 95, 145, 0.1);
+  content: "♥";
+  font-size: 78px;
+  line-height: 1;
+  transform: rotate(-14deg);
+}
+
+.love-message span,
+.love-message strong,
+.love-message small {
+  position: relative;
+  z-index: 1;
+}
+
+.love-message span {
+  color: var(--berry-soft);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.love-message strong {
+  color: var(--pink-deep);
+  font-size: clamp(21px, 6.2vw, 27px);
+  font-weight: 900;
+  letter-spacing: -0.7px;
+  line-height: 1.55;
+}
+
+.love-message small {
+  color: var(--berry);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .ticket {
   position: relative;
   display: grid;
@@ -975,6 +1028,21 @@ h2 {
 .share-button {
   width: 100%;
   padding: 0 18px;
+}
+
+.share-button.is-loading {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.final-step.is-capturing,
+.final-step.is-capturing * {
+  animation: none !important;
+  transition: none !important;
+}
+
+.final-step.is-capturing .final-actions {
+  display: none;
 }
 
 .restart-button {
@@ -1172,6 +1240,7 @@ h2 {
     display: grid;
     flex: 1;
     align-items: center;
+    align-items: safe center;
   }
 
   .step {

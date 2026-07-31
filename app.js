@@ -36,6 +36,7 @@ const elements = {
   choiceGrid: document.querySelector("#choiceGrid"),
   choiceCards: [...document.querySelectorAll(".choice-card")],
   finishButton: document.querySelector("#finishButton"),
+  finalStep: document.querySelector('.step[data-step="4"]'),
   finalDate: document.querySelector("#finalDate"),
   finalChoice: document.querySelector("#finalChoice"),
   shareButton: document.querySelector("#shareButton"),
@@ -169,54 +170,52 @@ function showFinal() {
   goToStep(4);
 }
 
-function buildCalendarFile() {
-  const start = new Date(`${state.date}T${state.time}:00`);
-  const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
-  const toCalendarDate = (date) =>
-    date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-
-  return [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Cute Date Invitation//FA",
-    "BEGIN:VEVENT",
-    `DTSTART:${toCalendarDate(start)}`,
-    `DTEND:${toCalendarDate(end)}`,
-    "SUMMARY:قرار قشنگمون 💗",
-    `DESCRIPTION:${state.choice} و کلی حال خوب`,
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n");
-}
-
-async function saveDate() {
-  const shareText = `قرارمون شد! ${formatSelectedDate()} برای ${state.choice} 💗`;
-
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: "قرار قشنگمون",
-        text: shareText,
-      });
-      showToast("جزئیات قرار آماده‌ی ارسال شد 💌");
-      return;
-    } catch (error) {
-      if (error.name === "AbortError") return;
-    }
+async function downloadFinalImage() {
+  if (typeof window.html2canvas !== "function") {
+    showToast("ابزار ساخت عکس بارگذاری نشد؛ دوباره امتحان کن 🥺");
+    return;
   }
 
-  const file = new Blob([buildCalendarFile()], {
-    type: "text/calendar;charset=utf-8",
-  });
-  const url = URL.createObjectURL(file);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "date-invitation.ics";
-  document.body.append(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-  showToast("قرار توی تقویمت ذخیره شد ✨");
+  elements.shareButton.disabled = true;
+  elements.shareButton.classList.add("is-loading");
+  elements.shareButton.setAttribute("aria-busy", "true");
+  elements.finalStep.classList.add("is-capturing");
+
+  try {
+    if (document.fonts?.ready) await document.fonts.ready;
+
+    const targetWidth = elements.finalStep.getBoundingClientRect().width;
+    const canvas = await window.html2canvas(elements.finalStep, {
+      backgroundColor: "#fff7fb",
+      logging: false,
+      scale: Math.min(3, Math.max(2, 1080 / targetWidth)),
+      useCORS: true,
+    });
+
+    const imageBlob = await new Promise((resolve) => {
+      canvas.toBlob(resolve, "image/png", 1);
+    });
+
+    if (!imageBlob) throw new Error("Image generation failed");
+
+    const imageUrl = URL.createObjectURL(imageBlob);
+    const downloadLink = document.createElement("a");
+    downloadLink.href = imageUrl;
+    downloadLink.download = "gharar-ba-mahdi.png";
+    document.body.append(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    window.setTimeout(() => URL.revokeObjectURL(imageUrl), 1500);
+    showToast("عکس قرار دانلود شد 💗");
+  } catch (error) {
+    console.error("Could not create the invitation image:", error);
+    showToast("ساخت عکس نشد؛ لطفاً دوباره امتحان کن 🥺");
+  } finally {
+    elements.finalStep.classList.remove("is-capturing");
+    elements.shareButton.disabled = false;
+    elements.shareButton.classList.remove("is-loading");
+    elements.shareButton.removeAttribute("aria-busy");
+  }
 }
 
 function showToast(message) {
@@ -307,7 +306,7 @@ elements.choiceGrid.addEventListener("click", (event) => {
   if (card) selectChoice(card);
 });
 elements.finishButton.addEventListener("click", showFinal);
-elements.shareButton.addEventListener("click", saveDate);
+elements.shareButton.addEventListener("click", downloadFinalImage);
 elements.restartButton.addEventListener("click", restart);
 
 setupDateInput();
