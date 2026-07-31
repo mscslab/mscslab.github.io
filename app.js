@@ -211,16 +211,12 @@ function createSubmissionId() {
 
 function createSubmissionPayload() {
   return {
-    submission_id: createSubmissionId(),
-    invitee_name: inviteeName,
-    response: "آره، قرارمون قطعی شد",
-    date: state.date,
-    time: state.time,
-    food: state.choice,
-    formatted_date: formatSelectedDate(),
-    submitted_at: new Date().toISOString(),
-    source: window.location.href,
-    _subject: `${inviteeName} قرار با مهدی رو قبول کرد 💗`,
+    id: createSubmissionId(),
+    fields: {
+      name: inviteeName,
+      date_time: `${state.date}T${state.time}`,
+      choice: state.choice,
+    },
   };
 }
 
@@ -235,7 +231,24 @@ function savePendingSubmission(payload) {
 function readPendingSubmission() {
   try {
     const savedValue = localStorage.getItem(PENDING_SUBMISSION_KEY);
-    return savedValue ? JSON.parse(savedValue) : null;
+    if (!savedValue) return null;
+
+    const savedPayload = JSON.parse(savedValue);
+    if (savedPayload.id && savedPayload.fields) return savedPayload;
+
+    // Convert responses saved by the previous, larger payload format.
+    if (savedPayload.submission_id) {
+      return {
+        id: savedPayload.submission_id,
+        fields: {
+          name: savedPayload.invitee_name || inviteeName,
+          date_time: `${savedPayload.date || ""}T${savedPayload.time || ""}`,
+          choice: savedPayload.food || "",
+        },
+      };
+    }
+
+    return null;
   } catch (error) {
     console.warn("Could not read the pending response:", error);
     return null;
@@ -245,7 +258,7 @@ function readPendingSubmission() {
 function clearPendingSubmission(submissionId) {
   try {
     const pendingSubmission = readPendingSubmission();
-    if (!pendingSubmission || pendingSubmission.submission_id === submissionId) {
+    if (!pendingSubmission || pendingSubmission.id === submissionId) {
       localStorage.removeItem(PENDING_SUBMISSION_KEY);
     }
   } catch (error) {
@@ -291,7 +304,7 @@ async function sendSubmissionPayload(payload, isRetry = false) {
   );
 
   const formData = new FormData();
-  Object.entries(payload).forEach(([fieldName, fieldValue]) => {
+  Object.entries(payload.fields).forEach(([fieldName, fieldValue]) => {
     formData.append(fieldName, String(fieldValue));
   });
 
@@ -318,7 +331,7 @@ async function sendSubmissionPayload(payload, isRetry = false) {
     window.clearTimeout(submissionRetryTimer);
     submissionRetryTimer = null;
     submissionRetryAttempt = 0;
-    clearPendingSubmission(payload.submission_id);
+    clearPendingSubmission(payload.id);
     updateSubmissionStatus("sent", `انتخاب‌های ${inviteeName} با موفقیت برای مهدی فرستاده شد ✓`);
 
     if (isRetry && state.step === 4) {
