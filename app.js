@@ -271,10 +271,15 @@ function createSubmissionId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function createEmailSubject(name = inviteeName) {
+  return `پاسخ دعوت قرار از ${name}`;
+}
+
 function createSubmissionPayload() {
   return {
     id: createSubmissionId(),
     fields: {
+      _subject: createEmailSubject(),
       name: inviteeName,
       date_time: toTehranIsoDateTime(state.date, state.time),
       formatted_date: formatSelectedDate(),
@@ -298,6 +303,7 @@ function readPendingSubmission() {
 
     const savedPayload = JSON.parse(savedValue);
     if (savedPayload.id && savedPayload.fields) {
+      savedPayload.fields._subject ||= createEmailSubject(savedPayload.fields.name);
       const { date: savedDate, time: savedTime } = extractDateTime(
         savedPayload.fields.date_time,
       );
@@ -312,10 +318,12 @@ function readPendingSubmission() {
     if (savedPayload.submission_id) {
       const savedDate = savedPayload.date || "";
       const savedTime = savedPayload.time || "";
+      const savedName = savedPayload.invitee_name || inviteeName;
       return {
         id: savedPayload.submission_id,
         fields: {
-          name: savedPayload.invitee_name || inviteeName,
+          _subject: createEmailSubject(savedName),
+          name: savedName,
           date_time: toTehranIsoDateTime(savedDate, savedTime),
           formatted_date: formatSelectedDate(savedDate, savedTime),
           choice: savedPayload.food || "",
