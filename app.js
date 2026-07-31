@@ -10,6 +10,7 @@ const state = {
 // نام طرف مقابل را فقط از همین خط تغییر بده.
 const INVITEE_NAME = "عزیزم";
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/xnjeygdy";
+const TIME_ZONE = "Asia/Tehran";
 const PENDING_SUBMISSION_KEY = "mahdi-date-invitation-pending-response";
 const RETRY_DELAYS = [2_000, 5_000, 10_000, 30_000, 60_000];
 const SUBMISSION_TIMEOUT = 12_000;
@@ -28,10 +29,31 @@ const teaseMessages = [
 ];
 
 const persianDigits = new Intl.NumberFormat("fa-IR", { useGrouping: false });
+const persianTwoDigits = new Intl.NumberFormat("fa-IR", {
+  minimumIntegerDigits: 2,
+  useGrouping: false,
+});
 const persianDate = new Intl.DateTimeFormat("fa-IR-u-ca-persian", {
   weekday: "long",
   day: "numeric",
   month: "long",
+  timeZone: TIME_ZONE,
+});
+const tehranDateParts = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  timeZone: TIME_ZONE,
+});
+const tehranOffsetParts = new Intl.DateTimeFormat("en-US", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
+  timeZone: TIME_ZONE,
 });
 
 const elements = {
@@ -74,17 +96,25 @@ function applyPersonalization() {
   elements.finalLead.textContent = `${inviteeName}، این قشنگ‌ترین «آره»ای بود که امروز شنیدم.`;
   elements.loveTitle.textContent = `${inviteeName}، مهدی خیلی دوستت داره`;
   elements.loveCaption.textContent = "و دلش خیلی برات تنگ شده 💗";
-  elements.submissionNote.textContent = `با قطعی کردن قرار، انتخاب‌های ${inviteeName} برای مهدی فرستاده میشه 💗`;
+  elements.submissionNote.textContent = "با قطعی کردن قرار، انتخاب‌های شما برای مهدی فرستاده میشه 💗";
 }
 
-function toLocalDateInputValue(date) {
-  const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
-  return localDate.toISOString().slice(0, 10);
+function partsToObject(formatter, date) {
+  return Object.fromEntries(
+    formatter
+      .formatToParts(date)
+      .filter(({ type }) => type !== "literal")
+      .map(({ type, value }) => [type, value]),
+  );
+}
+
+function toTehranDateInputValue(date) {
+  const { year, month, day } = partsToObject(tehranDateParts, date);
+  return `${year}-${month}-${day}`;
 }
 
 function setupDateInput() {
-  const today = new Date();
-  elements.dateInput.min = toLocalDateInputValue(today);
+  elements.dateInput.min = toTehranDateInputValue(new Date());
 }
 
 function createFloaties() {
@@ -174,22 +204,54 @@ function selectChoice(selectedCard) {
   burst(6, selectedCard);
 }
 
-function parseSelectedDate() {
-  const [year, month, day] = state.date.split("-").map(Number);
-  return new Date(year, month - 1, day);
+function parseSelectedDate(dateValue = state.date) {
+  const [year, month, day] = dateValue.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, 12));
 }
 
-function formatSelectedDate() {
-  if (!state.date || !state.time) return "تاریخ هنوز انتخاب نشده";
-  const formattedDate = persianDate.format(parseSelectedDate());
-  const [hour, minute] = state.time.split(":").map(Number);
-  const formattedTime = new Intl.DateTimeFormat("fa-IR", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date(2020, 0, 1, hour, minute));
+function getTehranOffsetMinutes(date) {
+  const parts = partsToObject(tehranOffsetParts, date);
+  const tehranAsUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+  );
 
-  return `${formattedDate}، ساعت ${formattedTime}`;
+  return Math.round((tehranAsUtc - date.getTime()) / 60_000);
+}
+
+function formatOffset(offsetMinutes) {
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const absoluteOffset = Math.abs(offsetMinutes);
+  const hours = String(Math.floor(absoluteOffset / 60)).padStart(2, "0");
+  const minutes = String(absoluteOffset % 60).padStart(2, "0");
+  return `${sign}${hours}:${minutes}`;
+}
+
+function toTehranIsoDateTime(dateValue, timeValue) {
+  if (!dateValue || !timeValue) return "";
+  const [year, month, day] = dateValue.split("-").map(Number);
+  const [hour, minute] = timeValue.split(":").map(Number);
+  const approximateInstant = new Date(Date.UTC(year, month - 1, day, hour, minute));
+  const offset = formatOffset(getTehranOffsetMinutes(approximateInstant));
+  return `${dateValue}T${timeValue}:00${offset}`;
+}
+
+function extractDateTime(dateTimeValue = "") {
+  const match = dateTimeValue.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/);
+  return match ? { date: match[1], time: match[2] } : { date: "", time: "" };
+}
+
+function formatSelectedDate(dateValue = state.date, timeValue = state.time) {
+  if (!dateValue || !timeValue) return "تاریخ هنوز انتخاب نشده";
+  const formattedDate = persianDate.format(parseSelectedDate(dateValue));
+  const [hour, minute] = timeValue.split(":").map(Number);
+  const formattedTime = `${persianTwoDigits.format(hour)}:${persianTwoDigits.format(minute)}`;
+
+  return `${formattedDate}، ساعت ${formattedTime} به‌وقت تهران`;
 }
 
 function showFinal() {
@@ -214,7 +276,8 @@ function createSubmissionPayload() {
     id: createSubmissionId(),
     fields: {
       name: inviteeName,
-      date_time: `${state.date}T${state.time}`,
+      date_time: toTehranIsoDateTime(state.date, state.time),
+      formatted_date: formatSelectedDate(),
       choice: state.choice,
     },
   };
@@ -234,15 +297,27 @@ function readPendingSubmission() {
     if (!savedValue) return null;
 
     const savedPayload = JSON.parse(savedValue);
-    if (savedPayload.id && savedPayload.fields) return savedPayload;
+    if (savedPayload.id && savedPayload.fields) {
+      const { date: savedDate, time: savedTime } = extractDateTime(
+        savedPayload.fields.date_time,
+      );
+      if (savedDate && savedTime) {
+        savedPayload.fields.date_time = toTehranIsoDateTime(savedDate, savedTime);
+        savedPayload.fields.formatted_date = formatSelectedDate(savedDate, savedTime);
+      }
+      return savedPayload;
+    }
 
     // Convert responses saved by the previous, larger payload format.
     if (savedPayload.submission_id) {
+      const savedDate = savedPayload.date || "";
+      const savedTime = savedPayload.time || "";
       return {
         id: savedPayload.submission_id,
         fields: {
           name: savedPayload.invitee_name || inviteeName,
-          date_time: `${savedPayload.date || ""}T${savedPayload.time || ""}`,
+          date_time: toTehranIsoDateTime(savedDate, savedTime),
+          formatted_date: formatSelectedDate(savedDate, savedTime),
           choice: savedPayload.food || "",
         },
       };
@@ -332,7 +407,7 @@ async function sendSubmissionPayload(payload, isRetry = false) {
     submissionRetryTimer = null;
     submissionRetryAttempt = 0;
     clearPendingSubmission(payload.id);
-    updateSubmissionStatus("sent", `انتخاب‌های ${inviteeName} با موفقیت برای مهدی فرستاده شد ✓`);
+    updateSubmissionStatus("sent", "انتخاب‌های شما با موفقیت برای مهدی فرستاده شد ✓");
 
     if (isRetry && state.step === 4) {
       showToast("این بار اطلاعات با موفقیت برای مهدی فرستاده شد 💌");
@@ -362,7 +437,7 @@ async function completeInvitation() {
   const wasSent = await sendSubmissionPayload(submissionPayload);
   showToast(
     wasSent
-      ? `انتخاب‌های ${inviteeName} برای مهدی فرستاده شد 💌`
+      ? "انتخاب‌های شما برای مهدی فرستاده شد 💌"
       : "فعلاً ارسال نشد؛ خودکار دوباره تلاش می‌کنم ✨",
   );
   elements.finishButton.removeAttribute("aria-busy");
