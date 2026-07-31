@@ -262,14 +262,14 @@ button {
 @keyframes step-in {
   from {
     opacity: 0;
-    transform: translateX(-18px);
+    transform: translateX(18px);
   }
 }
 
 @keyframes step-out {
   to {
     opacity: 0;
-    transform: translateX(14px);
+    transform: translateX(-14px);
   }
 }
 
@@ -1125,6 +1125,67 @@ h2 {
 @media (min-width: 700px) {
   .invite-card {
     min-height: 700px;
+  }
+}
+
+/* On phones the invitation becomes the page itself, without an outer card. */
+@media (max-width: 600px) {
+  body {
+    min-height: 100dvh;
+  }
+
+  .app-shell {
+    display: block;
+    min-height: 100dvh;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .invite-card {
+    display: flex;
+    width: 100%;
+    max-width: none;
+    min-height: 100vh;
+    min-height: 100dvh;
+    flex-direction: column;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    animation: none;
+  }
+
+  .card-header {
+    width: min(100%, 480px);
+    margin-inline: auto;
+    padding:
+      max(16px, env(safe-area-inset-top))
+      max(18px, env(safe-area-inset-right))
+      0
+      max(18px, env(safe-area-inset-left));
+  }
+
+  .steps {
+    display: grid;
+    flex: 1;
+    align-items: center;
+  }
+
+  .step {
+    width: min(100%, 430px);
+    margin-inline: auto;
+    padding:
+      22px
+      max(20px, env(safe-area-inset-right))
+      max(28px, env(safe-area-inset-bottom))
+      max(20px, env(safe-area-inset-left));
+  }
+
+  .signature {
+    display: none;
   }
 }
 
