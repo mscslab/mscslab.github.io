@@ -229,7 +229,7 @@ async function completeInvitation() {
 }
 
 async function downloadFinalImage() {
-  if (typeof window.html2canvas !== "function") {
+  if (typeof window.htmlToImage?.toPng !== "function") {
     showToast("ابزار ساخت عکس بارگذاری نشد؛ دوباره امتحان کن 🥺");
     return;
   }
@@ -243,27 +243,18 @@ async function downloadFinalImage() {
     if (document.fonts?.ready) await document.fonts.ready;
 
     const targetWidth = elements.finalStep.getBoundingClientRect().width;
-    const canvas = await window.html2canvas(elements.finalStep, {
+    const imageDataUrl = await window.htmlToImage.toPng(elements.finalStep, {
       backgroundColor: "#fff7fb",
-      logging: false,
-      scale: Math.min(3, Math.max(2, 1080 / targetWidth)),
-      useCORS: true,
+      pixelRatio: Math.min(3, Math.max(2, 1080 / targetWidth)),
+      cacheBust: false,
     });
 
-    const imageBlob = await new Promise((resolve) => {
-      canvas.toBlob(resolve, "image/png", 1);
-    });
-
-    if (!imageBlob) throw new Error("Image generation failed");
-
-    const imageUrl = URL.createObjectURL(imageBlob);
     const downloadLink = document.createElement("a");
-    downloadLink.href = imageUrl;
+    downloadLink.href = imageDataUrl;
     downloadLink.download = "gharar-ba-mahdi.png";
     document.body.append(downloadLink);
     downloadLink.click();
     downloadLink.remove();
-    window.setTimeout(() => URL.revokeObjectURL(imageUrl), 1500);
     showToast("عکس قرار دانلود شد 💗");
   } catch (error) {
     console.error("Could not create the invitation image:", error);

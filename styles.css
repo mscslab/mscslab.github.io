@@ -1057,6 +1057,11 @@ h2 {
   display: none;
 }
 
+.final-step.is-capturing h2,
+.final-step.is-capturing .love-message strong {
+  letter-spacing: normal !important;
+}
+
 .restart-button {
   min-height: 38px;
   border: 0;
