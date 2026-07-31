@@ -1,27 +1,27 @@
-# دعوت‌نامه‌ی قرار برای GitHub Pages
+# Date Invitation for GitHub Pages
 
-یک دعوت‌نامه‌ی تعاملی و موبایل‌محور با چهار مرحله:
+A cute, interactive, mobile-first date invitation with four steps:
 
-1. پاسخ بازیگوشانه به دعوت
-2. انتخاب تاریخ و ساعت
-3. انتخاب خوراکی
-4. نمایش خلاصه و ذخیره در تقویم
+1. A playful response to the invitation
+2. Date and time selection
+3. Food selection
+4. A final summary with an option to save the date to a calendar
 
-این پروژه React یا مرحله‌ی build ندارد و با HTML، CSS و JavaScript خالص اجرا می‌شود.
+This project uses plain HTML, CSS, and JavaScript. It does not require React or a build step.
 
-## پیش‌نمایش محلی
+## Local Preview
 
 ```bash
 python3 -m http.server 4173
 ```
 
-سپس به `http://localhost:4173` بروید.
+Then open `http://localhost:4173` in your browser.
 
-## انتشار رایگان روی GitHub Pages
+## Deploying to GitHub Pages
 
-با هر push روی شاخه‌ی `main`، گردش‌کار
-`.github/workflows/pages.yml` فایل‌های سایت را مستقیماً از ریشه‌ی پروژه منتشر می‌کند.
+Every push to the `main` branch triggers the
+`.github/workflows/pages.yml` workflow, which deploys the website directly from the repository root.
 
-در مخزن GitHub فقط کافی است از مسیر زیر، منبع انتشار را روی GitHub Actions بگذارید:
+In your GitHub repository, set the Pages deployment source to GitHub Actions:
 
 `Settings → Pages → Build and deployment → Source → GitHub Actions`
