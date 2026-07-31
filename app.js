@@ -91,10 +91,10 @@ const elements = {
 
 function applyPersonalization() {
   document.title = `یه دعوت کوچولو برای ${inviteeName} 💌`;
-  elements.inviteQuestion.textContent = `${inviteeName}، با من میای سر قرار؟`;
+  elements.inviteQuestion.textContent = `با من میای سر قرار؟ 🥹`;
   elements.finalTitle.textContent = `${inviteeName}، پس قرارمون شد!`;
   elements.finalLead.textContent = `${inviteeName}، این قشنگ‌ترین «آره»ای بود که امروز شنیدم.`;
-  elements.loveTitle.textContent = `${inviteeName}، مهدی خیلی دوستت داره`;
+  elements.loveTitle.textContent = `مهدی خیلی دوستت داره`;
   elements.loveCaption.textContent = "و دلش خیلی برات تنگ شده 💗";
   elements.submissionNote.textContent = "با قطعی کردن قرار، انتخاب‌های شما برای مهدی فرستاده میشه 💗";
 }
@@ -251,7 +251,7 @@ function formatSelectedDate(dateValue = state.date, timeValue = state.time) {
   const [hour, minute] = timeValue.split(":").map(Number);
   const formattedTime = `${persianTwoDigits.format(hour)}:${persianTwoDigits.format(minute)}`;
 
-  return `${formattedDate}، ساعت ${formattedTime} به‌وقت تهران`;
+  return `${formattedDate}، ساعت ${formattedTime}`;
 }
 
 function showFinal() {
