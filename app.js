@@ -4,7 +4,10 @@ const state = {
   date: "",
   time: "",
   choice: "",
+  submissionStatus: "idle",
 };
+
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xnjeygdy";
 
 const teaseMessages = [
   "مطمئنی؟ یه بار دیگه فکر کن 🥺",
@@ -170,6 +173,61 @@ function showFinal() {
   goToStep(4);
 }
 
+async function submitInvitationResponse() {
+  if (state.submissionStatus === "sent") return true;
+  if (state.submissionStatus === "submitting") return false;
+
+  state.submissionStatus = "submitting";
+
+  const formData = new FormData();
+  formData.append("response", "آره، قرارمون قطعی شد");
+  formData.append("date", state.date);
+  formData.append("time", state.time);
+  formData.append("food", state.choice);
+  formData.append("formatted_date", formatSelectedDate());
+  formData.append("submitted_at", new Date().toISOString());
+  formData.append("source", window.location.href);
+  formData.append("_subject", "یک قرار جدید برای مهدی ثبت شد 💗");
+
+  try {
+    const response = await fetch(FORMSPREE_ENDPOINT, {
+      method: "POST",
+      body: formData,
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.error || "Formspree rejected the submission");
+    }
+
+    state.submissionStatus = "sent";
+    return true;
+  } catch (error) {
+    state.submissionStatus = "failed";
+    console.error("Could not send the invitation response:", error);
+    return false;
+  }
+}
+
+async function completeInvitation() {
+  if (state.submissionStatus === "submitting") return;
+
+  elements.finishButton.disabled = true;
+  elements.finishButton.setAttribute("aria-busy", "true");
+  showFinal();
+
+  const wasSent = await submitInvitationResponse();
+  showToast(
+    wasSent
+      ? "انتخاب‌هات برای مهدی فرستاده شد 💌"
+      : "قرار ثبت شد، ولی ارسالش انجام نشد؛ اینترنت رو چک کن 🥺",
+  );
+  elements.finishButton.removeAttribute("aria-busy");
+}
+
 async function downloadFinalImage() {
   if (typeof window.html2canvas !== "function") {
     showToast("ابزار ساخت عکس بارگذاری نشد؛ دوباره امتحان کن 🥺");
@@ -267,6 +325,7 @@ function restart() {
   state.date = "";
   state.time = "";
   state.choice = "";
+  state.submissionStatus = "idle";
 
   elements.steps.forEach((step) => {
     const isFirst = step.dataset.step === "1";
@@ -305,7 +364,7 @@ elements.choiceGrid.addEventListener("click", (event) => {
   const card = event.target.closest(".choice-card");
   if (card) selectChoice(card);
 });
-elements.finishButton.addEventListener("click", showFinal);
+elements.finishButton.addEventListener("click", completeInvitation);
 elements.shareButton.addEventListener("click", downloadFinalImage);
 elements.restartButton.addEventListener("click", restart);
 
