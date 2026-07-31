@@ -7,7 +7,17 @@ const state = {
   submissionStatus: "idle",
 };
 
+// نام طرف مقابل را فقط از همین خط تغییر بده.
+const INVITEE_NAME = "عزیزم";
 const FORMSPREE_ENDPOINT = "https://formspree.io/f/xnjeygdy";
+const PENDING_SUBMISSION_KEY = "mahdi-date-invitation-pending-response";
+const RETRY_DELAYS = [2_000, 5_000, 10_000, 30_000, 60_000];
+const SUBMISSION_TIMEOUT = 12_000;
+const inviteeName = INVITEE_NAME.trim() || "عزیزم";
+
+let submissionRequestInFlight = false;
+let submissionRetryTimer = null;
+let submissionRetryAttempt = 0;
 
 const teaseMessages = [
   "مطمئنی؟ یه بار دیگه فکر کن 🥺",
@@ -40,6 +50,14 @@ const elements = {
   choiceCards: [...document.querySelectorAll(".choice-card")],
   finishButton: document.querySelector("#finishButton"),
   finalStep: document.querySelector('.step[data-step="4"]'),
+  inviteQuestion: document.querySelector("#inviteQuestion"),
+  finalTitle: document.querySelector("#finalTitle"),
+  finalLead: document.querySelector("#finalLead"),
+  loveTitle: document.querySelector("#loveTitle"),
+  loveCaption: document.querySelector("#loveCaption"),
+  submissionNote: document.querySelector("#submissionNote"),
+  submissionStatus: document.querySelector("#submissionStatus"),
+  submissionStatusText: document.querySelector("#submissionStatusText"),
   finalDate: document.querySelector("#finalDate"),
   finalChoice: document.querySelector("#finalChoice"),
   shareButton: document.querySelector("#shareButton"),
@@ -48,6 +66,16 @@ const elements = {
   floaties: document.querySelector("#floaties"),
   toast: document.querySelector("#toast"),
 };
+
+function applyPersonalization() {
+  document.title = `یه دعوت کوچولو برای ${inviteeName} 💌`;
+  elements.inviteQuestion.textContent = `${inviteeName}، با من میای سر قرار؟`;
+  elements.finalTitle.textContent = `${inviteeName}، پس قرارمون شد!`;
+  elements.finalLead.textContent = `${inviteeName}، این قشنگ‌ترین «آره»ای بود که امروز شنیدم.`;
+  elements.loveTitle.textContent = `${inviteeName}، مهدی خیلی دوستت داره`;
+  elements.loveCaption.textContent = "و دلش خیلی برات تنگ شده 💗";
+  elements.submissionNote.textContent = `با قطعی کردن قرار، انتخاب‌های ${inviteeName} برای مهدی فرستاده میشه 💗`;
+}
 
 function toLocalDateInputValue(date) {
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60_000);
@@ -173,26 +201,110 @@ function showFinal() {
   goToStep(4);
 }
 
-async function submitInvitationResponse() {
-  if (state.submissionStatus === "sent") return true;
-  if (state.submissionStatus === "submitting") return false;
+function createSubmissionId() {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
 
-  state.submissionStatus = "submitting";
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function createSubmissionPayload() {
+  return {
+    submission_id: createSubmissionId(),
+    invitee_name: inviteeName,
+    response: "آره، قرارمون قطعی شد",
+    date: state.date,
+    time: state.time,
+    food: state.choice,
+    formatted_date: formatSelectedDate(),
+    submitted_at: new Date().toISOString(),
+    source: window.location.href,
+    _subject: `${inviteeName} قرار با مهدی رو قبول کرد 💗`,
+  };
+}
+
+function savePendingSubmission(payload) {
+  try {
+    localStorage.setItem(PENDING_SUBMISSION_KEY, JSON.stringify(payload));
+  } catch (error) {
+    console.warn("Could not save the pending response locally:", error);
+  }
+}
+
+function readPendingSubmission() {
+  try {
+    const savedValue = localStorage.getItem(PENDING_SUBMISSION_KEY);
+    return savedValue ? JSON.parse(savedValue) : null;
+  } catch (error) {
+    console.warn("Could not read the pending response:", error);
+    return null;
+  }
+}
+
+function clearPendingSubmission(submissionId) {
+  try {
+    const pendingSubmission = readPendingSubmission();
+    if (!pendingSubmission || pendingSubmission.submission_id === submissionId) {
+      localStorage.removeItem(PENDING_SUBMISSION_KEY);
+    }
+  } catch (error) {
+    console.warn("Could not clear the pending response:", error);
+  }
+}
+
+function updateSubmissionStatus(status, message) {
+  state.submissionStatus = status;
+  elements.submissionStatus.dataset.status = status;
+  elements.submissionStatusText.textContent = message;
+}
+
+function scheduleSubmissionRetry(payload, immediate = false) {
+  window.clearTimeout(submissionRetryTimer);
+
+  const delay = immediate
+    ? 0
+    : RETRY_DELAYS[Math.min(submissionRetryAttempt, RETRY_DELAYS.length - 1)];
+
+  if (!immediate) submissionRetryAttempt += 1;
+
+  updateSubmissionStatus(
+    "retrying",
+    immediate
+      ? "اتصال برگشت؛ دوباره دارم ارسال می‌کنم..."
+      : `ارسال نشد؛ ${persianDigits.format(Math.round(delay / 1000))} ثانیه دیگه دوباره تلاش می‌کنم`,
+  );
+
+  submissionRetryTimer = window.setTimeout(() => {
+    submissionRetryTimer = null;
+    void sendSubmissionPayload(payload, true);
+  }, delay);
+}
+
+async function sendSubmissionPayload(payload, isRetry = false) {
+  if (submissionRequestInFlight) return false;
+
+  submissionRequestInFlight = true;
+  updateSubmissionStatus(
+    "sending",
+    isRetry ? "دوباره دارم برای مهدی می‌فرستم..." : "در حال ارسال برای مهدی...",
+  );
 
   const formData = new FormData();
-  formData.append("response", "آره، قرارمون قطعی شد");
-  formData.append("date", state.date);
-  formData.append("time", state.time);
-  formData.append("food", state.choice);
-  formData.append("formatted_date", formatSelectedDate());
-  formData.append("submitted_at", new Date().toISOString());
-  formData.append("source", window.location.href);
-  formData.append("_subject", "یک قرار جدید برای مهدی ثبت شد 💗");
+  Object.entries(payload).forEach(([fieldName, fieldValue]) => {
+    formData.append(fieldName, String(fieldValue));
+  });
+
+  const abortController = new AbortController();
+  const requestTimeout = window.setTimeout(() => {
+    abortController.abort();
+  }, SUBMISSION_TIMEOUT);
 
   try {
     const response = await fetch(FORMSPREE_ENDPOINT, {
       method: "POST",
       body: formData,
+      signal: abortController.signal,
       headers: {
         Accept: "application/json",
       },
@@ -203,29 +315,49 @@ async function submitInvitationResponse() {
       throw new Error(errorData?.error || "Formspree rejected the submission");
     }
 
-    state.submissionStatus = "sent";
+    window.clearTimeout(submissionRetryTimer);
+    submissionRetryTimer = null;
+    submissionRetryAttempt = 0;
+    clearPendingSubmission(payload.submission_id);
+    updateSubmissionStatus("sent", `انتخاب‌های ${inviteeName} با موفقیت برای مهدی فرستاده شد ✓`);
+
+    if (isRetry && state.step === 4) {
+      showToast("این بار اطلاعات با موفقیت برای مهدی فرستاده شد 💌");
+    }
+
     return true;
   } catch (error) {
-    state.submissionStatus = "failed";
     console.error("Could not send the invitation response:", error);
+    savePendingSubmission(payload);
+    scheduleSubmissionRetry(payload);
     return false;
+  } finally {
+    window.clearTimeout(requestTimeout);
+    submissionRequestInFlight = false;
   }
 }
 
 async function completeInvitation() {
-  if (state.submissionStatus === "submitting") return;
+  if (submissionRequestInFlight) return;
 
+  const submissionPayload = createSubmissionPayload();
+  savePendingSubmission(submissionPayload);
   elements.finishButton.disabled = true;
   elements.finishButton.setAttribute("aria-busy", "true");
   showFinal();
 
-  const wasSent = await submitInvitationResponse();
+  const wasSent = await sendSubmissionPayload(submissionPayload);
   showToast(
     wasSent
-      ? "انتخاب‌هات برای مهدی فرستاده شد 💌"
-      : "قرار ثبت شد، ولی ارسالش انجام نشد؛ اینترنت رو چک کن 🥺",
+      ? `انتخاب‌های ${inviteeName} برای مهدی فرستاده شد 💌`
+      : "فعلاً ارسال نشد؛ خودکار دوباره تلاش می‌کنم ✨",
   );
   elements.finishButton.removeAttribute("aria-busy");
+}
+
+function resumePendingSubmission() {
+  const pendingSubmission = readPendingSubmission();
+  if (pendingSubmission) scheduleSubmissionRetry(pendingSubmission, true);
 }
 
 async function downloadFinalImage() {
@@ -255,7 +387,7 @@ async function downloadFinalImage() {
     document.body.append(downloadLink);
     downloadLink.click();
     downloadLink.remove();
-    showToast("عکس قرار دانلود شد 💗");
+    showToast("دانلود شد 💗");
   } catch (error) {
     console.error("Could not create the invitation image:", error);
     showToast("ساخت عکس نشد؛ لطفاً دوباره امتحان کن 🥺");
@@ -358,7 +490,16 @@ elements.choiceGrid.addEventListener("click", (event) => {
 elements.finishButton.addEventListener("click", completeInvitation);
 elements.shareButton.addEventListener("click", downloadFinalImage);
 elements.restartButton.addEventListener("click", restart);
+window.addEventListener("online", () => {
+  const pendingSubmission = readPendingSubmission();
+  if (pendingSubmission && !submissionRequestInFlight) {
+    submissionRetryAttempt = 0;
+    scheduleSubmissionRetry(pendingSubmission, true);
+  }
+});
 
+applyPersonalization();
 setupDateInput();
 createFloaties();
 updateProgress();
+resumePendingSubmission();

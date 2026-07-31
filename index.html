@@ -60,7 +60,7 @@
             </div>
 
             <span class="eyebrow">یه سوال خیلی مهم...</span>
-            <h1>با من میای سر قرار؟</h1>
+            <h1 id="inviteQuestion">با من میای سر قرار؟</h1>
             <p class="lead">قول میدم پر از خنده، خوراکی و حال خوب باشه ✨</p>
 
             <div class="answer-zone">
@@ -156,7 +156,7 @@
               قرارمون قطعی شد!
               <span aria-hidden="true">💌</span>
             </button>
-            <p class="submission-note">
+            <p class="submission-note" id="submissionNote">
               با قطعی کردن قرار، انتخاب‌هات برای مهدی فرستاده میشه 💗
             </p>
           </section>
@@ -172,13 +172,13 @@
             </div>
 
             <span class="eyebrow">هوراااا! 🎉</span>
-            <h2>پس قرارمون شد!</h2>
-            <p class="lead final-lead">این قشنگ‌ترین «آره»ای بود که امروز شنیدم.</p>
+            <h2 id="finalTitle">پس قرارمون شد!</h2>
+            <p class="lead final-lead" id="finalLead">این قشنگ‌ترین «آره»ای بود که امروز شنیدم.</p>
 
             <div class="love-message">
               <span>یه چیز مهم دیگه...</span>
-              <strong>مهدی خیلی دوستت داره</strong>
-              <small>و دلش خیلی برات تنگ شده 💗</small>
+              <strong id="loveTitle">مهدی خیلی دوستت داره</strong>
+              <small id="loveCaption">و دلش خیلی برات تنگ شده 💗</small>
             </div>
 
             <div class="ticket">
@@ -203,9 +203,14 @@
 
             <p class="final-note">لباس قشنگت رو بپوش، بقیه‌ش با من! <span aria-hidden="true">🌷</span></p>
 
+            <div class="submission-status" id="submissionStatus" data-status="idle" role="status" aria-live="polite">
+              <span class="submission-status__dot" aria-hidden="true"></span>
+              <span id="submissionStatusText">در حال آماده‌سازی ارسال...</span>
+            </div>
+
             <div class="final-actions">
               <button class="primary-button share-button" id="shareButton" type="button">
-                دانلود عکس قرار
+                ذخیره تصویر
                 <svg viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M12 3v12M7 10l5 5 5-5M5 20h14" />
                 </svg>
