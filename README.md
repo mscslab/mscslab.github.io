@@ -19,9 +19,13 @@ Then open `http://localhost:4173` in your browser.
 
 ## Deploying to GitHub Pages
 
-Every push to the `main` branch triggers the
-`.github/workflows/pages.yml` workflow, which deploys the website directly from the repository root.
+This repository does not need a custom GitHub Actions workflow because the website is fully static and its files are stored in the repository root.
 
-In your GitHub repository, set the Pages deployment source to GitHub Actions:
+In your GitHub repository, configure Pages to publish directly from the `main` branch:
 
-`Settings → Pages → Build and deployment → Source → GitHub Actions`
+1. Open `Settings → Pages`.
+2. Under **Build and deployment**, set **Source** to `Deploy from a branch`.
+3. Select the `main` branch and the `/(root)` folder.
+4. Click **Save**.
+
+GitHub Pages will deploy the site automatically after each push to `main`.
