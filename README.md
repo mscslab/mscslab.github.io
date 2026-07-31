@@ -12,7 +12,7 @@
 ## پیش‌نمایش محلی
 
 ```bash
-python3 -m http.server 4173 -d public
+python3 -m http.server 4173
 ```
 
 سپس به `http://localhost:4173` بروید.
@@ -20,7 +20,7 @@ python3 -m http.server 4173 -d public
 ## انتشار رایگان روی GitHub Pages
 
 با هر push روی شاخه‌ی `main`، گردش‌کار
-`.github/workflows/pages.yml` محتوای پوشه‌ی `public` را منتشر می‌کند.
+`.github/workflows/pages.yml` فایل‌های سایت را مستقیماً از ریشه‌ی پروژه منتشر می‌کند.
 
 در مخزن GitHub فقط کافی است از مسیر زیر، منبع انتشار را روی GitHub Actions بگذارید:
 
