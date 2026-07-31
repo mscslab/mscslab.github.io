@@ -1,4 +1,4 @@
-# Date Invitation for GitHub Pages
+# Date Invitation
 
 A cute, interactive, mobile-first date invitation with four steps:
 
