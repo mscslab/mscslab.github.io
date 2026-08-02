@@ -27,7 +27,7 @@ Then open one of these URLs in your browser:
 
 ## Deploying to GitHub Pages
 
-This repository does not need a custom GitHub Actions workflow because the pages are fully static. Each page is stored in its own directory, leaving the repository root available for future pages.
+This repository does not need a custom GitHub Actions workflow because the pages are fully static. Each page is stored in its own directory, and the root page currently redirects visitors to `invite/`.
 
 In your GitHub repository, configure Pages to publish directly from the `main` branch:
 
