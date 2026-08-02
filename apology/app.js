@@ -1,5 +1,5 @@
 const INVITEE_NAME = "عزیزم";
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/xnjeygdy";
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/xykrqvoq";
 const TIME_ZONE = "Asia/Tehran";
 const PENDING_ANSWERS_KEY = "mahdi-apology-pending-answers-v1";
 const RETRY_DELAYS = [2_000, 5_000, 10_000, 30_000, 60_000];
