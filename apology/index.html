@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f9ff" />
+    <meta
+      name="description"
+      content="یک گفت‌وگوی آرام و صادقانه، بدون فشار و قضاوت"
+    />
+    <title>یه حرف از ته دل…</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="ambient" aria-hidden="true">
+      <span class="glow glow--one"></span>
+      <span class="glow glow--two"></span>
+      <span class="glow glow--three"></span>
+      <div class="floating-shapes" id="floatingShapes"></div>
+    </div>
+
+    <main class="app-shell">
+      <article class="apology-card">
+        <header class="card-header">
+          <span class="header-mark" aria-hidden="true">♡</span>
+          <div class="progress" id="progress" aria-label="میزان پیشرفت فرم">
+            <span class="progress__track">
+              <span class="progress__bar" id="progressBar"></span>
+            </span>
+            <span class="progress__text" id="progressText">یه شروع آروم</span>
+          </div>
+          <span class="header-dot" aria-hidden="true"></span>
+        </header>
+
+        <div class="screen-wrap">
+          <section class="screen is-active" id="screen" aria-live="polite"></section>
+        </div>
+      </article>
+
+      <p class="privacy-note">
+        <span aria-hidden="true">🤍</span>
+        هر پاسخی که ثبت کنی، خصوصی برای مهدی فرستاده میشه.
+      </p>
+    </main>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js" defer></script>
+  </body>
+</html>

@@ -1,13 +1,18 @@
-# Date Invitation
+# Romantic Static Pages
 
-A cute, interactive, mobile-first date invitation with four steps:
+This repository contains two mobile-first, static Persian pages:
+
+- `invite/`: a cute, interactive date invitation with four steps
+- `apology/`: a gentle apology questionnaire that sends each submitted answer separately
+
+The invitation includes:
 
 1. A playful response to the invitation
 2. Date and time selection
 3. Food selection
 4. A final summary with an option to save the invitation as an image
 
-This project uses plain HTML, CSS, and JavaScript. It does not require React or a build step.
+Both pages use plain HTML, CSS, and JavaScript. They do not require React or a build step.
 
 ## Local Preview
 
@@ -15,11 +20,14 @@ This project uses plain HTML, CSS, and JavaScript. It does not require React or 
 python3 -m http.server 4173
 ```
 
-Then open `http://localhost:4173/invite/` in your browser.
+Then open one of these URLs in your browser:
+
+- `http://localhost:4173/invite/`
+- `http://localhost:4173/apology/`
 
 ## Deploying to GitHub Pages
 
-This repository does not need a custom GitHub Actions workflow because the website is fully static. The invitation files are stored in the `invite/` directory, leaving the repository root available for future pages.
+This repository does not need a custom GitHub Actions workflow because the pages are fully static. Each page is stored in its own directory, leaving the repository root available for future pages.
 
 In your GitHub repository, configure Pages to publish directly from the `main` branch:
 
@@ -30,6 +38,7 @@ In your GitHub repository, configure Pages to publish directly from the `main` b
 
 GitHub Pages will deploy the site automatically after each push to `main`.
 
-For this user-site repository, the invitation will be published at:
+For this user-site repository, the pages will be published at:
 
-`https://mscslab.github.io/invite/`
+- `https://mscslab.github.io/invite/`
+- `https://mscslab.github.io/apology/`
