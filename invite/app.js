@@ -93,7 +93,7 @@ function applyPersonalization() {
   document.title = `یه دعوت کوچولو برای ${inviteeName} 💌`;
   elements.inviteQuestion.textContent = `با من میای سر قرار؟ 🥹`;
   elements.finalTitle.textContent = `${inviteeName}، پس قرارمون شد!`;
-  elements.finalLead.textContent = `${inviteeName}، این قشنگ‌ترین «آره»ای بود که امروز شنیدم.`;
+  elements.finalLead.textContent = `این قشنگ‌ترین «آره»ای بود که امروز شنیدم.`;
   elements.loveTitle.textContent = `مهدی خیلی دوستت داره`;
   elements.loveCaption.textContent = "و دلش خیلی برات تنگ شده 💗";
   elements.submissionNote.textContent = "با قطعی کردن قرار، انتخاب‌های شما برای مهدی فرستاده میشه 💗";
